@@ -98,7 +98,7 @@ function List() {
     if (error) {
         return (
             <div className="min-h-screen bg-gray-900 flex items-center justify-center">
-                <div className="bg-red-900 border border-red-200 rounded-lg p-6 max-w-md">
+                <div className="bg-gray-800 border border-red-200 rounded-lg p-6 max-w-md">
                     <h2 className="text-red-800 font-semibold mb-2">Error Loading Items</h2>
                     <p className="text-red-600">{error}</p>
                     <button 
