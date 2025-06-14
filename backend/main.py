@@ -6,15 +6,18 @@ from app.models import auth, item
 from app.routes import auth as auth_routes, item as item_routes
 
 
+# Database
 item.Base.metadata.create_all(bind=engine)
 auth.Base.metadata.create_all(bind=engine)
 
-
+# App
 app = FastAPI()
 
+# Routes
 app.include_router(item_routes.router, prefix="/api")
 app.include_router(auth_routes.router, prefix="/auth")
 
+# CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:5173"],

@@ -22,15 +22,25 @@ function List() {
         try {
             setLoading(true);
 
-            const response = await fetch('http://localhost:8000/api/');
+            const response = await fetch('http://localhost:8000/api/', {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
+                    'Content-Type': 'application/json',
+                },
+            });
 
             if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+                const error = await response.json();
+                if (response.status === 401) {
+                    // Redirect to auth page
+                    window.location.href = '/auth';
+                }
+                throw new Error(`HTTP error! status: ${response.status} - ${error.detail}`);
             }
 
             const data = await response.json();
-            // Limit to first 10 items for better display
-            setItems(data.slice(0, 10));
+            setItems(data);
         } catch (err) {
             setError(err.message);
         } finally {
@@ -55,6 +65,7 @@ function List() {
             const response = await fetch('http://localhost:8000/api/', {
                 method: 'POST',
                 headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
@@ -82,6 +93,19 @@ function List() {
         } finally {
             setSubmitting(false);
         }
+    };
+
+    const handleLogout = async () => {
+        if (!window.confirm('Are you sure you want to logout?')) {
+            return;
+        }
+
+        // Clear local storage/session data
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('token_type');
+
+        // Redirect to auth page
+        window.location.href = '/auth';
     };
 
     if (loading) {
@@ -114,6 +138,8 @@ function List() {
 
     return (
         <div className="min-h-screen bg-gray-900 py-8">
+
+
             <div className="max-w-4xl mx-auto px-4">
                 {/* Add Item Form */}
                 {showForm && (
@@ -211,18 +237,26 @@ function List() {
                             <h1 className="text-2xl font-bold text-gray-50">Items List</h1>
                             <p className="text-gray-400 mt-1">Fetched {items.length} items from API</p>
                         </div>
-                        <button
-                            onClick={() => setShowForm(!showForm)}
-                            className="bg-yellow-300 text-black px-4 py-2 rounded-md hover:bg-yellow-400 cursor-pointer focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
-                        >
-                            {showForm ? 'Cancel' : 'Add Item'}
-                        </button>
+                        <div className="flex gap-2">
+                            <button
+                                onClick={() => setShowForm(!showForm)}
+                                className="bg-yellow-300 text-black px-4 py-2 rounded-md hover:bg-yellow-400 cursor-pointer focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+                            >
+                                {showForm ? 'Cancel' : 'Add Item'}
+                            </button>
+                            <button
+                                onClick={handleLogout}
+                                className="bg-red-600 cursor-pointer hover:bg-red-700 text-white px-4 py-2 rounded-md transition-colors duration-200 flex items-center gap-2 shadow-lg"
+                            >
+                                Logout
+                            </button>
+                        </div>
                     </div>
 
                     <div className="divide-y divide-gray-500">
                         {items.map((item) => (
-                            <div key={item.id} className="p-6 hover:bg-gray-700 transition-colors cursor-pointer">
-                                <Link to={`/${item.id}`}>
+                            <Link to={`/${item.id}`}>
+                                <div key={item.id} className="p-6 hover:bg-gray-700 transition-colors cursor-pointer">
                                     <div className="flex items-start justify-between">
                                         <div className="flex-1">
                                             <h3 className="text-lg font-semibold text-gray-50 mb-2 capitalize">
@@ -243,8 +277,8 @@ function List() {
                                             </div>
                                         </div>
                                     </div>
-                                </Link>
-                            </div>
+                                </div>
+                            </Link>
                         ))}
                     </div>
                 </div>

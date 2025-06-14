@@ -25,10 +25,21 @@ function Item() {
 
             // Try to fetch from your backend first
             let response;
-            response = await fetch(`http://localhost:8000/api/${id}`);
+            response = await fetch(`http://localhost:8000/api/${id}`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
+                    'Content-Type': 'application/json',
+                },
+            });
 
             if (!response.ok) {
-                throw new Error(`Item not found (${response.status})`);
+                const error = await response.json();
+                if (response.status === 401) {
+                    // Redirect to auth page
+                    window.location.href = '/auth';
+                }
+                throw new Error(`HTTP error! status: ${response.status} - ${error.detail}`);
             }
 
             const item = await response.json();
@@ -61,6 +72,7 @@ function Item() {
             const response = await fetch(`http://localhost:8000/api/${id}`, {
                 method: 'PUT',
                 headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
@@ -91,6 +103,10 @@ function Item() {
         try {
             const response = await fetch(`http://localhost:8000/api/${id}`, {
                 method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
+                    'Content-Type': 'application/json',
+                },
             });
 
             if (!response.ok) {
